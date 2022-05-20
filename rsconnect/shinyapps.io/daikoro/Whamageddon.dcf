@@ -1,0 +1,12 @@
+name: Whamageddon
+title: Whamageddon
+username:
+account: daikoro
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3429232
+bundleId: 5419385
+url: https://daikoro.shinyapps.io/Whamageddon/
+when: 1640856863.38106
+asMultiple: FALSE
+asStatic: FALSE
