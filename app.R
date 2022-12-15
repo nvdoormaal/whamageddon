@@ -53,7 +53,7 @@ server <- function(input, output) {
     # Read data
     Data <- read_csv("./Data/Whamageddon.csv",
                      col_types = cols( ID = col_integer(),
-                                       When = col_date(format = "%d-%m-%Y"),
+                                       When = col_date(format = "%d-%m-%Y %H:%M"),
                                        Hit = col_integer(),
                                        Comments = col_character()
                      )
