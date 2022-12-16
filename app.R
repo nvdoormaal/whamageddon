@@ -86,7 +86,7 @@ server <- function(input, output) {
     # First ggplot2
     p1 <- ggplot(data = DataCum, aes(x = When, y = `Wham Count`)) + 
         geom_step(aes(colour = Who), lwd = 1.5) + 
-        scale_colour_brewer(palette = "Set1") +
+        scale_colour_brewer(palette = "Okabe-Ito") +
         scale_x_date("", date_breaks = "2 days",
                      date_labels = "%b-%d", expand = c(0.02,0.02)) +
         scale_y_continuous("Wham count", limits = c(0,16), breaks = seq(0,16,2)) +

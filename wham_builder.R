@@ -1,5 +1,7 @@
 library(readr)
 library(lubridate)
+library(dplyr)
+library(ggplot2)
 
 ## Read data
 data <- read_csv(
@@ -13,9 +15,7 @@ data <- read_csv(
 )
 # Data cleaning
 data_complete <- data %>%
-  dplyr::arrange(
-    When
-  ) %>% 
+  arrange(When) %>% 
   tidyr::complete(
     Who,
     When = c(
@@ -39,10 +39,10 @@ data_complete <- data %>%
   tidyr::replace_na(
     list(Hit =  0)
   ) %>% 
-  dplyr::select(
+  select(
     c(When, Who, Hit)
   ) %>% 
-  dplyr::mutate(
+  mutate(
     Year = lubridate::year(When)
   )
 ## Cumulative counts
@@ -57,42 +57,30 @@ data_cumulative <- data_complete %>%
     Year, Who
   ) %>% 
   mutate(
-    `Wham Count` = dplyr::case_when(
+    `Wham Count` = case_when(
       When <= lubridate::now() ~ cumsum(Hit)
     )
   )
 ## Plot
 ggplot(
   data = data_cumulative, 
-  aes(
-    x = When, 
-    y = `Wham Count`
+  aes(x = When, y = `Wham Count`
   )
 ) + 
   geom_step(
-    lwd = 1.5,
-    aes(
-      colour = Who
-    )
+    lwd = 1.5, aes(colour = Who)
   ) + 
-  scale_colour_brewer(
-    palette = "Set1"
+  paletteer::scale_color_paletteer_d(
+    palette = "colorblindr::OkabeIto_black"
   ) +
   scale_x_datetime(
-    "", 
-    date_breaks = "2 days",
-    date_labels = "%b-%d", 
-    expand = c(0.02,0.02)
+    "",  date_breaks = "2 days", date_labels = "%b-%d", expand = c(0.02,0.02)
   ) +
   scale_y_continuous(
-    "Wham count", 
-    limits = c(0,16), 
-    breaks = seq(0,16,2)
+    "Wham count", limits = c(0,16), breaks = seq(0,16,2)
   ) +
   facet_wrap(
-    ~Year, 
-    scales = "free_x", 
-    ncol = 3
+    ~Year,  scales = "free_x", ncol = 3
   ) +
   labs(
     title = "Wham counts per year"
@@ -110,23 +98,53 @@ ggplot(
   )
 # WHAM Awards
 ## Longest period
-data_cumulative %>% 
+data_longestperiod <- data_cumulative %>% 
   filter(
     `Wham Count` == 0
   ) %>% 
   count(
-    Year, Who, 
-    name = "Hours"
+    Year, Who, name = "Hours"
   ) %>% 
-  group_by(
-    Who
-  ) %>% 
+  group_by(Who) %>% 
   slice_max(
     order_by = Hours
   ) %>% 
-  arrange(
-    -Hours
-  ) %>% 
+  ungroup() %>% 
+  arrange(-Hours) %>% 
   mutate(
     days = round(Hours / 24, 1)
+  ) %>% 
+  slice_head(n = 3) %>% 
+  select(
+    Who, days, Year
+  )
+## Shortest time period between WHAMs
+data_shortestperiod <- data_cumulative %>% 
+  filter(
+    Hit == 1,
+    Year >= 2022
+  ) %>% 
+  arrange(Who, When) %>% 
+  group_by(Year, Who) %>% 
+  mutate(
+    tdiff = lubridate::interval(lag(When), When),
+    tdiff = as.numeric(as.duration(tdiff), "hours")
+  ) %>% 
+  slice_min(tdiff) %>% 
+  ungroup() %>% 
+  arrange(tdiff) %>% 
+  slice_head(n = 3)
+
+## World WHAM record
+wham_record <- data_cumulative %>% 
+  filter(
+    Hit == 1
+  ) %>% 
+  group_by(Who) %>% 
+  slice_max(`Wham Count`) %>% 
+  arrange(-`Wham Count`) %>% 
+  ungroup() %>% 
+  slice_head(n = 3) %>% 
+  select(
+    Who, `Wham Count`, Year
   )
